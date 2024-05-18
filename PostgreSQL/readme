@@ -1,3 +1,24 @@
+In this course's independent project, you will work with a database that stores information about venture capital funds and investments in startup companies.
+This database is based on the Startup Investments dataset published on the popular data mining competition platform Kaggle.
+Analyzing the investment market without preparation can be difficult.
+Therefore, first become familiar with the important concepts that you will encounter while working with a database.
+Venture capital funds are financial institutions that can afford to take high risks and invest in companies with an innovative business idea or developed new technology, that is, startups. The goal of venture funds is to receive significant profits in the future, which will be many times greater than the amount they spend on investing in the company.
+If the startup rises in price, the venture fund may receive a stake in the company or a fixed percentage of its revenue.
+To make the financing process less risky, it is divided into stages - rounds.
+This or that round depends on what level of development the company has reached.
+The first stages are the pre-seed and seed rounds.
+A pre-seed round assumes that the company as such has not yet been created and is in the concept stage.
+The next seed round marks the growth of the project: the company’s founders are developing a business model and attracting investors.
+If a company needs a mentor or mentor, it attracts a business angel.
+Business angels are investors who, in addition to financial support, offer expert assistance. This round is called an angel round.
+When a startup becomes a company with a proven business model and begins to earn money on its own, there are more offers from investors.
+This is round A, and others follow: B, C, D - at these stages the company is actively developing and preparing for an IPO.
+Sometimes a venture round is allocated - financing that could come from a venture fund at any stage: initial or later.
+You will find references to rounds in investment data, but a self-directed project does not require you to understand their specifics better than any investor.
+The main thing is to understand how the data is structured.
+You already know what an ER diagram is. It's best to start working with a new database by studying the scheme.
+
+
 В самостоятельном проекте этого курса вы будете работать с базой данных, которая хранит информацию о венчурных фондах и инвестициях в компании-стартапы.
 Эта база данных основана на датасете Startup Investments, опубликованном на популярной платформе для соревнований по исследованию данных Kaggle. 
 Анализировать рынок инвестиций без подготовки может быть непросто.
