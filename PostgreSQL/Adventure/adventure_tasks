@@ -1,0 +1,471 @@
+1. Выведите всю информацию о товарах для туризма (продуктовая линейка T).
+
+SELECT *
+FROM adventure.product
+WHERE product_line='T';
+
+2. Выведите всю информацию о товарах общего назначения (продуктовая линейка S).
+
+SELECT *
+FROM adventure.product
+WHERE product_line='S';
+
+3. Выведите список уникальных должностей в компании Adventure Works Cycle. Отсортируйте список по возрастанию в лексикографическом порядке.
+
+SELECT DISTINCT job_title AS title
+FROM adventure.employee
+ORDER BY title;
+
+4. Выведите список уникальных городов из таблицы address. Отсортируйте список по убыванию в лексикографическом порядке.
+
+SELECT DISTINCT city AS city_name
+FROM adventure.address
+ORDER BY city_name DESC;
+
+5. Выведите количество товаров каждого стиля (W — женский, M — мужской, U — универсальный). При подсчёте исключите записи, в которых стиль не указан, то есть на месте значения стоит NULL. Выдачу отсортируйте по убыванию количества товаров.
+
+
+SELECT style,
+       COUNT(product_id) AS qty
+FROM adventure.product
+WHERE style IS NOT NULL
+GROUP BY style
+ORDER BY qty DESC;
+
+6. Выведите среднюю себестоимость товара каждого класса (L — эконом, M — стандарт, H — премиум). Значение себестоимости округлите до одного знака после запятой. При подсчёте исключите строки, в которых класс товара не указан, то есть вместо значения в них стоит NULL. Выдачу отсортируйте по возрастанию средней себестоимости.
+
+SELECT class,
+       ROUND(AVG(standard_cost), 1) AS qty
+FROM adventure.product
+WHERE class IS NOT NULL
+GROUP BY class
+ORDER BY qty;
+
+7. Отберите товары серебряного (англ. Silver) цвета, которые стали продаваться начиная с 2011 года, и выведите их идентификаторы и даты старта продаж в формате timestamp.
+
+SELECT product_id,
+       CAST(sell_start_date AS timestamp)
+FROM adventure.product
+WHERE color='Silver'
+  AND CAST(sell_start_date AS timestamp)>'2011-01-01';
+  
+8. Отберите товары красного (англ. Red) цвета, которые стали продаваться начиная с 2012 года, и выведите их идентификаторы и даты старта продаж в формате timestamp.
+
+SELECT product_id,
+       CAST(sell_start_date AS timestamp)
+FROM adventure.product
+WHERE color='Red'
+  AND CAST(sell_start_date AS timestamp)>'2012-01-01';
+  
+9. Выведите название компании каждого поставщика и город, в котором он находится. Отсортируйте таблицу по названию компании в лексикографическом порядке по возрастанию. 
+
+SELECT v.name,
+       ad.city
+FROM adventure.vendor AS v
+LEFT JOIN adventure.vendor_address AS a ON v.vendor_id=a.vendor_id
+LEFT JOIN adventure.address AS ad ON a.address_id=ad.address_id
+ORDER BY v.name;
+
+10. Выведите всю информацию о заказах из таблицы purchase_order_header, оформленных с 2012 по 2013 год (поле order_date). Отсортируйте вывод по возрастанию идентификатора заказа.
+
+SELECT *
+FROM adventure.purchase_order_header
+WHERE order_date BETWEEN '2012-01-01' AND '2013-12-31'
+ORDER BY purchase_order_id;
+
+11. Выведите среднее количество доступных часов отпуска для сотрудников в разном семейном положении. Округлите среднее до двух знаков после запятой. Отсортируйте таблицу по возрастанию посчитанных средних значений.
+
+SELECT marital_status,
+       ROUND(AVG(vacation_hours), 2) AS avg_vacation
+FROM adventure.employee
+GROUP BY marital_status
+ORDER BY avg_vacation;
+
+12. Для каждого месяца c мая по август 2012 года найдите количество совершённых заказов. Выведите первое число каждого месяца и количество заказов в этот месяц. Отсортируйте выдачу по возрастанию дат.
+
+SELECT DATE_TRUNC('month', order_date)::DATE AS MONTH,
+       COUNT(purchase_order_id) AS qty
+FROM adventure.purchase_order_header
+WHERE order_date BETWEEN '2012-05-01' AND '2012-08-31'
+GROUP BY MONTH
+ORDER BY MONTH;
+
+13. Из таблицы purchase_order_header выведите идентификатор заказа и дату отгрузки для заказов с наименьшей стоимостью доставки (поле ship_base). Отсортируйте выдачу по возрастанию даты отгрузки. Используйте подзапросы.
+
+SELECT purchase_order_id,
+       ship_date
+FROM adventure.purchase_order_header AS h
+JOIN
+  (SELECT ship_method_id,
+          ship_base
+   FROM adventure.ship_method
+   GROUP BY ship_method_id
+   ORDER BY ship_base
+   LIMIT 1) AS i ON h.ship_method_id=i.ship_method_id;
+   
+14. Отберите заказы, цена доставки которых (поле ship_base) не была ни наименьшей, ни наибольшей. Из таблицы purchase_order_header выведите идентификатор и дату отгрузки для отобранных заказов. Отсортируйте выдачу по возрастанию даты отгрузки. Используйте подзапросы.
+
+SELECT purchase_order_id,
+       ship_date
+FROM adventure.purchase_order_header AS h
+JOIN
+  (SELECT ship_method_id,
+          ship_base
+   FROM adventure.ship_method
+   GROUP BY ship_method_id
+   HAVING ship_base!=
+     (SELECT MIN(ship_base)
+      FROM adventure.ship_method)
+   AND ship_base!=
+     (SELECT MAX(ship_base)
+      FROM adventure.ship_method)) AS i ON h.ship_method_id=i.ship_method_id;
+      
+15. Выведите идентификаторы заказов из таблицы purchase_order_header c максимальным интервалом в днях между датой оформления заказа и датой отгрузки.
+
+SELECT purchase_order_id,
+       ship_date
+FROM adventure.purchase_order_header AS h
+SELECT h.purchase_order_id
+FROM adventure.purchase_order_header AS h
+JOIN
+  (SELECT purchase_order_id,
+          (ship_date::DATE-order_date::DATE) AS delta
+   FROM adventure.purchase_order_header
+   GROUP BY purchase_order_id
+   HAVING (ship_date::DATE-order_date::DATE)=
+     (SELECT MAX((ship_date::DATE-order_date::DATE))
+      FROM adventure.purchase_order_header)) AS i ON h.purchase_order_id=i.purchase_order_id;
+      
+16. Отберите отклонённые заказы из таблицы purchase_order_header и посчитайте, на какую сумму был сделан каждый из них. Чтобы найти сумму заказа, используйте цену за единицу товара (поле unit_price) и количество единиц товара в заказе (поле order_qty). Используйте оператор INNER JOIN для присоединения таблицы. Округлите суммарные значения до двух знаков после запятой. Отсортируйте выдачу по возрастанию суммы заказа. Заказы на одинаковую сумму отсортируйте по возрастанию идентификаторов.
+
+SELECT h.purchase_order_id,
+       ROUND(SUM(d.unit_price*d.order_qty), 2) AS total
+FROM adventure.purchase_order_header AS h
+INNER JOIN adventure.purchase_order_detail AS d ON h.purchase_order_id=d.purchase_order_id
+WHERE h.status=3
+GROUP BY h.purchase_order_id
+ORDER BY total,
+         h.purchase_order_id;
+         
+17. Выведите названия компаний-поставщиков и полный адрес их сайтов, если он заканчивается на .com/. Компании с другими адресами не должны попасть в выдачу. Отсортируйте итоговую таблицу по имени поставщика в лексикографическом порядке по возрастанию.
+
+SELECT name,
+       purchasing_web_service_url
+FROM adventure.vendor
+WHERE purchasing_web_service_url LIKE '%.com/'
+ORDER BY name;
+
+18. Выведите названия компаний-поставщиков и города, в котором находится каждая из компаний. Отобразите информацию о компаниях с адресами сайтов, которые заканчиваются на .com/. Отсортируйте итоговую таблицу по имени поставщика в лексикографическом порядке по убыванию.
+
+SELECT v.name,
+       a.city
+FROM adventure.vendor AS v
+LEFT JOIN adventure.vendor_address AS va ON v.vendor_id=va.vendor_id
+LEFT JOIN adventure.address AS a ON va.address_id=a.address_id
+WHERE v.purchasing_web_service_url LIKE '%.com/'
+ORDER BY v.name DESC;
+
+19. Отберите поставщиков с кредитным рейтингом выше 3, услугами которых до сих пор пользуются. Выведите название компании и улицу (поле addressline1), на которой компания находится. Отсортируйте выдачу по названию компании в лексикографическим порядке по возрастанию.
+
+WITH main AS
+  (SELECT v.name,
+          v.is_active,
+          credit_rating,
+          a.addressline1
+   FROM adventure.vendor AS v
+   LEFT JOIN adventure.vendor_address AS va ON v.vendor_id=va.vendor_id
+   LEFT JOIN adventure.address AS a ON va.address_id=a.address_id
+   ORDER BY v.name)
+SELECT main.name,
+       main.addressline1
+FROM main
+WHERE main.credit_rating>3
+  AND main.is_active=TRUE
+ORDER BY main.name;
+
+20. Из таблицы purchase_order_header выведите несколько полей:
+- идентификатор заказа;
+- идентификатором сотрудника, оформившего заказ;
+- дата оформления заказа (поле order_date).
+Добавьте поле с датой предыдущего заказа, который оформил сотрудник. Если предыдущего заказа нет, используйте значение NULL.
+
+SELECT purchase_order_id,
+       employee_id,
+       order_date,
+       LAG(order_date) OVER (PARTITION BY employee_id
+                             ORDER BY order_date) AS previous_order_dt
+FROM adventure.purchase_order_header;
+
+21. Из таблицы purchase_order_header выведите идентификаторы заказов с максимальным интервалом между текущим и предыдущим заказами, которые были созданы одним сотрудником.
+
+WITH main AS (SELECT purchase_order_id,
+       employee_id,
+       order_date::DATE,
+       order_date::DATE - LAG(order_date::DATE) OVER (PARTITION BY employee_id ORDER BY order_date::DATE) AS days_from_previous_order
+FROM adventure.purchase_order_header
+ORDER BY days_from_previous_order DESC)
+
+SELECT main.purchase_order_id
+FROM main
+WHERE main.days_from_previous_order=(SELECT MAX(main.days_from_previous_order)
+                 FROM main);
+                 
+22.  Напишите запрос, который выведет идентификаторы и даты заказов (поле order_date) из таблицы purchase_order_header. Отдельным полем отобразите суммарную стоимость заказов за текущий месяц. Стоимость заказа можно взять из поля subtotal.
+
+SELECT purchase_order_id,
+       order_date,
+       SUM(subtotal) OVER (PARTITION BY DATE_TRUNC('month', order_date)) AS total
+FROM adventure.purchase_order_header;
+
+23. Из таблицы purchase_order_header выведите несколько полей:
+- идентификатор сотрудника;
+- идентификатор десятого по счёту заказа, который оформил сотрудник;
+- дата (поле order_date) десятого по счёту заказа сотрудника.
+Отсортируйте таблицу по возрастанию идентификаторов сотрудников.
+
+WITH ran AS
+  (SELECT employee_id,
+          purchase_order_id,
+          order_date,
+          ROW_NUMBER() OVER (PARTITION BY employee_id
+                             ORDER BY order_date) AS rn
+   FROM adventure.purchase_order_header)
+SELECT employee_id,
+       purchase_order_id,
+       order_date
+FROM ran
+WHERE rn=10
+ORDER BY employee_id;
+
+
+24. Из таблицы purchase_order_header выведите несколько полей:
+- идентификатор сотрудника;
+- идентификатор второго по счёту заказа, который оформил сотрудник;
+- дата (поле order_date) второго по счёту заказа сотрудника.
+Отсортируйте таблицу по возрастанию идентификаторов сотрудников.
+
+WITH ran AS (SELECT employee_id,
+       purchase_order_id,
+       order_date,
+       ROW_NUMBER() OVER (PARTITION BY employee_id ORDER BY order_date) AS rn
+FROM adventure.purchase_order_header
+)
+
+SELECT employee_id,
+       purchase_order_id,
+       order_date
+ FROM ran
+ WHERE rn=2
+ ORDER BY employee_id;
+ 
+ 25. Используя таблицу purchase_order_header, выведите несколько полей:
+- идентификатор сотрудника employee_id;
+- дата оформления заказа order_date;
+- сумма заказа subtotal;
+- сумма заказа с накоплением для каждого сотрудника, - отсортированная по возрастанию даты заказа.
+Значения двух последних полей округлите до двух знаков после запятой.
+
+SELECT employee_id,
+       order_date,
+       ROUND(subtotal, 2),
+       ROUND(SUM(subtotal) OVER (PARTITION BY employee_id ORDER BY order_date), 2) AS cum_sum
+FROM adventure.purchase_order_header;
+
+26. Используя таблицу purchase_order_header, выведите несколько полей:
+- дата заказа (поле order_date), усечённая до первого числа - месяца и приведённая к типу date;
+- общая сумма заказа subtotal;
+- сумма заказа с накоплением по месяцам, отсортированная по возрастанию месяца оформления заказа.
+Значения округлять не нужно.
+
+SELECT DATE_TRUNC('month', order_date::timestamp)::DATE,
+       subtotal,
+       SUM(subtotal) OVER (ORDER BY DATE_TRUNC('month', order_date::timestamp)::DATE) AS cum_sum
+FROM adventure.purchase_order_header;
+
+27. Пользуясь таблицей purchase_order_header, выведите поля с идентификатором заказа, суммой заказа (поле subtotal) и минимальным значением суммы среди текущей и двадцати следующих записей. Значения последних двух полей округлите до одного знака после запятой.
+
+SELECT purchase_order_id,
+       ROUND(subtotal, 1),
+       ROUND((MIN(subtotal) OVER (ROWS BETWEEN CURRENT ROW AND 20 FOLLOWING)), 1)
+FROM adventure.purchase_order_header;
+
+28. Пользуясь таблицей purchase_order_header, выведите поля с идентификатором заказа, суммой заказа (поле subtotal) и максимальным значением суммы среди пяти предыдущих записей и текущей. Округлять значения не нужно.
+
+SELECT purchase_order_id,
+       subtotal,
+       MAX(subtotal) OVER (ROWS BETWEEN 5 PRECEDING AND CURRENT ROW)
+FROM adventure.purchase_order_header;
+
+29. Выведите идентификаторы и названия товаров серебряного (англ. Silver) цвета, которые относятся к категории горных велосипедов (англ. Mountain Bikes). Отсортируйте выдачу по возрастанию идентификаторов товаров.
+
+SELECT p.product_id,
+       p.name
+FROM adventure.product AS p
+LEFT JOIN adventure.product_subcategory AS ps ON p.product_subcategory_id=ps.product_subcategory_id
+WHERE p.color='Silver'
+  AND ps.name LIKE '%Mountain Bikes%';
+  
+30. Выведите идентификаторы и названия товаров красного (англ. Red) цвета, которые относятся к категории дорожных велосипедов (англ. Road Bikes). Отсортируйте выдачу по возрастанию идентификаторов товаров.
+
+SELECT p.product_id,
+       p.name
+FROM adventure.product AS p
+LEFT JOIN adventure.product_subcategory AS ps ON p.product_subcategory_id=ps.product_subcategory_id
+WHERE p.color='Red'
+  AND ps.name LIKE '%Road Bikes%';
+  
+31. Используя таблицу purchase_order_header, вычислите, сколько денег потратили клиенты на заказы в каждом месяце 2012 года. В итоговую таблицу войдут два поля: название месяца (в нижнем регистре) и суммарные траты за месяц, округлённые до двух знаков после запятой. Отсортируйте результаты по убыванию числа трат.
+
+SELECT CASE
+           WHEN EXTRACT(MONTH
+                        FROM order_date) = 1 THEN 'январь'
+           WHEN EXTRACT(MONTH
+                        FROM order_date) = 2 THEN 'февраль'
+           WHEN EXTRACT(MONTH
+                        FROM order_date) = 3 THEN 'март'
+           WHEN EXTRACT(MONTH
+                        FROM order_date) = 4 THEN 'апрель'
+           WHEN EXTRACT(MONTH
+                        FROM order_date) = 5 THEN 'май'
+           WHEN EXTRACT(MONTH
+                        FROM order_date) = 6 THEN 'июнь'
+           WHEN EXTRACT(MONTH
+                        FROM order_date) = 7 THEN 'июль'
+           WHEN EXTRACT(MONTH
+                        FROM order_date) = 8 THEN 'август'
+           WHEN EXTRACT(MONTH
+                        FROM order_date) = 9 THEN 'сентябрь'
+           WHEN EXTRACT(MONTH
+                        FROM order_date) = 10 THEN 'октябрь'
+           WHEN EXTRACT(MONTH
+                        FROM order_date) = 11 THEN 'ноябрь'
+           WHEN EXTRACT(MONTH
+                        FROM order_date) = 12 THEN 'декабрь'
+       END AS month_rus,
+       ROUND(SUM(subtotal), 2) AS total
+FROM adventure.purchase_order_header
+WHERE EXTRACT(YEAR
+              FROM order_date)=2012
+GROUP BY month_rus
+ORDER BY total DESC;
+
+32. Используя таблицу purchase_order_header, вычислите, сколько денег потратили клиенты (поле subtotal) на заказы в каждом квартале 2012 года. В итоговую таблицу войдут два поля: название квартала (первый квартал, второй квартал и т. д.) и суммарные траты за квартал, округлённые до двух знаков после запятой. Отсортируйте результаты по возрастанию числа трат.
+
+SELECT CASE
+           WHEN EXTRACT(MONTH
+                        FROM order_date) >= 1
+                AND EXTRACT(MONTH
+                            FROM order_date) <= 3 THEN 'первый квартал'
+           WHEN EXTRACT(MONTH
+                        FROM order_date) > 3
+                AND EXTRACT(MONTH
+                            FROM order_date) <= 6 THEN 'второй квартал'
+           WHEN EXTRACT(MONTH
+                        FROM order_date) >= 6
+                AND EXTRACT(MONTH
+                            FROM order_date) <= 9 THEN 'третий квартал'
+           ELSE 'четвёртый квартал'
+       END AS QUARTER,
+       ROUND(SUM(subtotal), 2) AS total
+FROM adventure.purchase_order_header
+WHERE EXTRACT(YEAR
+              FROM order_date)=2012
+GROUP BY QUARTER
+ORDER BY total;
+
+33. Используя таблицу purchase_order_header, для каждого квартала 2012 года рассчитайте, на сколько процентов изменились траты клиентов на заказы в текущем квартале по сравнению с предыдущим.
+Используя таблицу purchase_order_header, выведите три поля: 
+- Номер квартала (1, 2, 3, 4) 2012 года.
+- Общая сумма трат за текущий квартал.
+- Вещественное число (положительное или отрицательное), которое обозначает, на сколько процентов изменилась сумма трат в текущем квартале по сравнению с предыдущим. Для расчётов используйте поле subtotal.
+Значения двух последних полей округлите до двух знаков после запятой.  
+
+WITH q AS (SELECT CASE
+           WHEN EXTRACT(MONTH FROM order_date) >= 1 AND EXTRACT(MONTH FROM order_date) <= 3 THEN 1
+           WHEN EXTRACT(MONTH FROM order_date) > 3 AND EXTRACT(MONTH FROM order_date) <= 6 THEN 2
+           WHEN EXTRACT(MONTH FROM order_date) >= 6 AND EXTRACT(MONTH FROM order_date) <= 9 THEN 3
+           ELSE 4
+       END AS quarter,
+       ROUND(SUM(subtotal), 2) AS total
+FROM adventure.purchase_order_header
+WHERE EXTRACT(YEAR FROM order_date)=2012
+GROUP BY quarter
+ORDER BY quarter)
+
+SELECT q.quarter,
+       q.total,
+       ROUND(100 * (q.total - LAG(q.total) OVER (ORDER BY q.quarter))::NUMERIC / ((LAG(q.total) OVER (ORDER BY q.quarter))::NUMERIC), 2)
+FROM q;
+
+34.Используя таблицу purchase_order_detail и ранжирующую оконную функцию, посчитайте заказы, в которых было 3 товара и более. Не используйте оператор GROUP BY.
+
+WITH ord AS
+  (SELECT *,
+          ROW_NUMBER() OVER (PARTITION BY purchase_order_id) AS rn
+   FROM adventure.purchase_order_detail)
+SELECT COUNT(DISTINCT purchase_order_id)
+FROM ord
+WHERE rn >= 3;
+
+35. Используя таблицу purchase_order_detail и ранжирующую оконную функцию, посчитайте заказы, в которых было от 20 товаров по цене 37 долларов за единицу (поле unit_price) или дороже. Не используйте оператор GROUP BY.
+
+WITH ord AS
+  (SELECT *,
+          ROW_NUMBER() OVER (PARTITION BY purchase_order_id) AS rn
+   FROM adventure.purchase_order_detail
+   WHERE unit_price >= 37)
+SELECT COUNT(DISTINCT purchase_order_id)
+FROM ord
+WHERE rn >= 20;
+
+36. Пользуясь таблицей purchase_order_header, посчитайте, сколько денег тратили клиенты на заказы каждый год, а также разницу в тратах между следующим и текущим годами. Разница должна показывать, на сколько траты следующего года отличаются от текущего. В случае, если данных по следующему году нет, используйте NULL.
+Выгрузите поля:
+- год оформления заказа (поле order_date), приведённый к типу date;
+- траты за текущий год (используя поле subtotal);
+- разница в тратах между следующим и текущим годами.
+
+WITH year_sub AS (
+    SELECT DATE_TRUNC('year', order_date)::DATE AS year,
+           SUM(subtotal) AS year_expenditure
+    FROM adventure.purchase_order_header
+    GROUP BY year
+    ORDER BY year
+)
+SELECT year_sub.year,
+       year_sub.year_expenditure,
+       ((LEAD(year_sub.year_expenditure) OVER (ORDER BY  year_sub.year)) - year_sub.year_expenditure)::NUMERIC
+FROM year_sub;
+
+37. Отберите товары, которые последний раз поставляли в 2013 году или позже. Выведите названия этих товаров и даты их последней поставки. Отсортируйте выдачу по возрастанию дат.
+
+SELECT p.name,
+       pv.last_receipt_date
+FROM adventure.product AS p
+LEFT JOIN adventure.product_vendor AS pv ON p.product_id=pv.product_id
+WHERE EXTRACT(YEAR
+              FROM pv.last_receipt_date) >= 2013
+ORDER BY pv.last_receipt_date;
+
+38. Отберите товары, которые последний поставляли в 2012 году или позже. Для отобранных товаров выведите:
+- Название товара.
+- Сумму, которую потратили на заказ этого товара за всё время, представленное в данных. Для расчёта трат используйте поля unit_price и order_qty из таблицы purchase_order_detail.
+Отсортируйте результаты по возрастанию суммы трат.
+
+WITH cost AS (SELECT product_id,
+                     unit_price,
+                     order_qty
+              FROM adventure.purchase_order_detail
+          ),
+name_product AS (
+SELECT p.name AS name,
+       p.product_id
+FROM adventure.product AS p
+LEFT JOIN adventure.product_vendor AS pv ON p.product_id=pv.product_id
+WHERE EXTRACT(YEAR FROM pv.last_receipt_date) >= 2013
+)
+SELECT name_product.name,
+       SUM(cost.unit_price * cost.order_qty) AS total
+FROM name_product 
+LEFT JOIN cost ON name_product.product_id=cost.product_id
+GROUP BY name_product.name
+ORDER BY total;
