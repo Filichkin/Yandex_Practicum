@@ -2,3 +2,8 @@ Learning project for prediction usage car price with ML models:
 - LinearRegression;
 - LGBMRegressor;
 - CatBoostRegressor.
+
+As result is a comparing metrics for each model:
+- RMSE;
+- model learning time;
+- model prediction time.
