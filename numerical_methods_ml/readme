@@ -1,0 +1,4 @@
+Learning project for prediction usage car price with ML models:
+- LinearRegression;
+- LGBMRegressor;
+- CatBoostRegressor.
