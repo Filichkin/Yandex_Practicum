@@ -12,6 +12,9 @@
 Функция process_anfisa(query) через return будет возвращать строку с ответом в функцию print(), чтобы напечатать ответ.
 
 print('Привет, я Анфиса!')
+
 print(process_anfisa('Сколько у меня друзей?'))
+
 print(process_anfisa('Кто все мои друзья?'))
+
 print(process_anfisa('Где все мои друзья?'))
