@@ -1,4 +1,4 @@
-### Python algoritms part 1
+### Python algorithms part 1
 <ol>
 <li>Линейный поиск</li>
 <li>Бинарный поиск</li>
@@ -16,7 +16,7 @@
 <li>Метод скользящего окна</li>
 </ol>
 
-### Python algoritms part 2
+### Python algorithms part 2
 <ol>
 <li>Стек вызовов</li>
 <li>Рекурсия</li>
